@@ -1,0 +1,77 @@
+buildscript {
+	ext {
+		springBootVersion = '2.1.1.RELEASE'
+	}
+	repositories {
+		mavenCentral()
+	}
+	dependencies {
+		classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
+	}
+}
+
+plugins {
+	id "io.spring.dependency-management" version "1.0.6.RELEASE"
+	id 'com.github.spotbugs' version "1.6.6"
+	id 'idea'
+	id 'jacoco'
+	id 'java'
+	id 'org.springframework.boot' version '2.1.1.RELEASE'
+	id 'pmd'
+	id 'net.ltgt.apt' version '0.10'
+	id 'io.franzbecker.gradle-lombok' version '1.14'
+}
+
+lombok {
+	sha256 = ""
+}
+
+
+
+group = 'com.cognizant.wow'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = 1.8
+
+repositories {
+	mavenCentral()
+}
+
+
+dependencies {
+	implementation('org.springframework.boot:spring-boot-starter-amqp')
+	implementation('org.springframework.boot:spring-boot-starter-data-rest')
+	implementation('org.springframework.boot:spring-boot-starter-web')
+	implementation('org.flywaydb:flyway-core')
+	compile 'org.springframework.boot:spring-boot-starter-data-jpa'
+	testImplementation('org.springframework.boot:spring-boot-starter-test')
+	runtimeOnly 'org.postgresql:postgresql'
+	testCompile 'com.google.guava:guava-testlib:27.0.1-jre'
+}
+jacocoTestReport {
+	reports {
+		xml.enabled false
+		csv.enabled false
+		html.destination file("${buildDir}/reports/coverage/".toString())
+	}
+}
+
+jacocoTestCoverageVerification {
+	violationRules {
+		rule {
+			limit {
+				minimum = 1
+			}
+		}
+		afterEvaluate {
+			getClassDirectories().setFrom(files(getClassDirectories().files.collect {
+				fileTree(dir: it, exclude: ['com/cognizant/covr/VisitorApplication.class'])
+			}))
+		}
+	}
+}
+
+pmd {
+	ignoreFailures = false
+}
+
+test.finalizedBy jacocoTestCoverageVerification, jacocoTestReport
