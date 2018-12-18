@@ -23,6 +23,8 @@ public class EmployeeRegisterationControllerTest {
     @Autowired
     MockMvc mockMvc;
     ObjectMapper objectMapper = new ObjectMapper();
+    @Autowired
+    EmployeeRepository employeeRepository;
     public final String ERROR_MESSAGE ="Employee details can't be blank";
     @Test
     public void registerEmployeeReturnErrorForNoEmployeeData() throws Exception {
@@ -36,7 +38,8 @@ public class EmployeeRegisterationControllerTest {
                 .andExpect(status().isBadRequest())
                 .andReturn()
                 .getResponse()
-                .getContentAsString();
+                .getErrorMessage();
+                //.getContentAsString();
 
         //Assert
         assertThat(response, is(ERROR_MESSAGE));
@@ -44,10 +47,11 @@ public class EmployeeRegisterationControllerTest {
 
     }
 
-    @Test
+
+   @Test
     public void registerEmployeeReturnSucessfullAdd() throws Exception {
         //set up
-        Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
+        Employee employee = new Employee("Fine", "Moe1", 123456L, "9876543210");
         //exercise
         String response=mockMvc.perform(MockMvcRequestBuilders
                 .post("/register").accept(MediaType.APPLICATION_JSON)
@@ -58,10 +62,11 @@ public class EmployeeRegisterationControllerTest {
                 .getResponse()
                 .getContentAsString();
         Employee actual = objectMapper.readValue(response,Employee.class);
+        Employee actual1=employeeRepository.findById(123456L).orElse(new Employee());
 
 
         //Assert
-        assertThat(employee, is(actual));
+        assertThat(employee, is(actual1));
 
 
     }

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.Objects;
 
@@ -18,14 +19,15 @@ public class EmployeeRegisterationController {
     EmployeeRepository employeeRepository;
     @PostMapping
     ResponseEntity registerEmployee(@RequestBody Employee employee){
-
-
         if(Objects.nonNull(employee)&& null!=employee.getEmployeeId()) {
-            employeeRepository.save(employee);
-            return ResponseEntity.status(HttpStatus.CREATED).body(employee);
+
+            Employee employeeRegistered=employeeRepository.save(employee);
+            return ResponseEntity.status(HttpStatus.CREATED).body(employeeRegistered);
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_MESSAGE);
+       // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_MESSAGE);
+        throw new ResponseStatusException(
+                HttpStatus.BAD_REQUEST, ERROR_MESSAGE);
 
     }
 }

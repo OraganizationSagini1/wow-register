@@ -78,4 +78,14 @@ public class Employee {
     public int hashCode() {
         return Objects.hash(getLastName(), getFirstName(), getEmployeeId(), getPhoneNumber());
     }
+
+    @Override
+    public String toString() {
+        return "Employee{" +
+                "lastName='" + lastName + '\'' +
+                ", firstName='" + firstName + '\'' +
+                ", employeeId=" + employeeId +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                '}';
+    }
 }

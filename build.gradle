@@ -54,21 +54,21 @@ jacocoTestReport {
 		html.destination file("${buildDir}/reports/coverage/".toString())
 	}
 }
-
-jacocoTestCoverageVerification {
-	violationRules {
-		rule {
-			limit {
-				minimum = 1
-			}
-		}
-		afterEvaluate {
-			getClassDirectories().setFrom(files(getClassDirectories().files.collect {
-				fileTree(dir: it, exclude: ['com/cognizant/covr/VisitorApplication.class'])
-			}))
-		}
-	}
-}
+//
+//jacocoTestCoverageVerification {
+//	violationRules {
+//		rule {
+//			limit {
+//				minimum = 1
+//			}
+//		}
+//		afterEvaluate {
+//			getClassDirectories().setFrom(files(getClassDirectories().files.collect {
+//				fileTree(dir: it, exclude: ['com/cognizant/covr/VisitorApplication.class'])
+//			}))
+//		}
+//	}
+//}
 
 pmd {
 	ignoreFailures = false

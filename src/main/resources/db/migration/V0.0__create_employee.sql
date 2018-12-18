@@ -16,4 +16,4 @@ CREATE TABLE public.employee
   TABLESPACE pg_default;
 
 ALTER TABLE public.employee
-  OWNER to nss_admin;
+  OWNER to saginijoy;--nss_admin
