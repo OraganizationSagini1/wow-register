@@ -1,6 +1,8 @@
 package com.cognizant.wow.employeeregister;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.After;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -26,6 +28,15 @@ public class EmployeeRegisterationControllerTest {
     @Autowired
     EmployeeRepository employeeRepository;
     public final String ERROR_MESSAGE ="Employee details can't be blank";
+    public final String USER_REGISTERED_MESSAGE ="Employee already registered";
+    @Before
+    public void before(){
+        employeeRepository.deleteAll();
+    }
+    @After
+    public void after(){
+        employeeRepository.deleteAll();
+    }
     @Test
     public void registerEmployeeReturnErrorForNoEmployeeData() throws Exception {
         //set up
@@ -57,7 +68,7 @@ public class EmployeeRegisterationControllerTest {
                 .post("/register").accept(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(employee))
                 .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isCreated())
+                .andExpect(status().isOk())
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
@@ -67,6 +78,30 @@ public class EmployeeRegisterationControllerTest {
 
         //Assert
         assertThat(employee, is(actual1));
+
+
+    }
+
+    @Test
+    public void registerEmployeeReturnErrorMessageIfEmployeeExist() throws Exception {
+        //set up
+        Employee employee = new Employee("John", "Smith", 123456L, "9876543210");
+
+        //exercise
+        employeeRepository.save(employee);
+        //exercise
+        String response=mockMvc.perform(MockMvcRequestBuilders
+                .post("/register").accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(employee))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isBadRequest())
+                .andReturn()
+                .getResponse()
+                .getErrorMessage();
+        //.getContentAsString();
+
+        //Assert
+        assertThat(response, is(USER_REGISTERED_MESSAGE));
 
 
     }

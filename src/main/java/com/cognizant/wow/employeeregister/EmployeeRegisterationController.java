@@ -14,20 +14,27 @@ import java.util.Objects;
 @RestController
 @RequestMapping("/register")
 public class EmployeeRegisterationController {
+
     public final String ERROR_MESSAGE ="Employee details can't be blank";
+    public final String USER_REGISTERED_MESSAGE ="Employee already registered";
     @Autowired
     EmployeeRepository employeeRepository;
-    @PostMapping
-    ResponseEntity registerEmployee(@RequestBody Employee employee){
-        if(Objects.nonNull(employee)&& null!=employee.getEmployeeId()) {
 
-            Employee employeeRegistered=employeeRepository.save(employee);
-            return ResponseEntity.status(HttpStatus.CREATED).body(employeeRegistered);
+    @PostMapping
+    Employee registerEmployee(@RequestBody Employee employee){
+        if(Objects.nonNull(employee)&& null!=employee.getEmployeeId()) {
+            if(employeeRepository.existsById(employee.getEmployeeId())){
+                throw new ResponseStatusException(
+                        HttpStatus.BAD_REQUEST, USER_REGISTERED_MESSAGE);
+            }
+
+            return employeeRepository.save(employee);
         }
 
-       // return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(ERROR_MESSAGE);
-        throw new ResponseStatusException(
-                HttpStatus.BAD_REQUEST, ERROR_MESSAGE);
+       else {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, ERROR_MESSAGE);
+        }
 
     }
 }
