@@ -6,7 +6,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
 import javax.validation.constraints.NotNull;
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 @Entity
@@ -18,6 +22,7 @@ public class Employee {
     @NotNull
     private Long employeeId;
     private String phoneNumber;
+
 
     @JsonCreator
     public Employee(@JsonProperty("lastName") String lastName, @JsonProperty("firstName") String firstName, @JsonProperty("employeeId") Long employeeId, @JsonProperty("phoneNumber") String phoneNumber) {

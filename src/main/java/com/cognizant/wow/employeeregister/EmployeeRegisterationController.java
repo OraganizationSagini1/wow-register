@@ -9,26 +9,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDate;
+import java.util.Date;
 import java.util.Objects;
 
 @RestController
 @RequestMapping("/register")
 public class EmployeeRegisterationController {
 
-    public final String ERROR_MESSAGE ="Employee details can't be blank";
-    public final String USER_REGISTERED_MESSAGE ="Employee already registered";
+    private static final String ERROR_MESSAGE ="Employee details can't be blank";
     @Autowired
-    EmployeeRepository employeeRepository;
+    private EmployeeRepository employeeRepository;
+    @Autowired
+    private BadgeRepository badgeRepository;
+    @Autowired
+    private EmployeeBadgeMappingRepository employeeBadgeMappingRepository;
 
     @PostMapping
-    Employee registerEmployee(@RequestBody Employee employee){
-        if(Objects.nonNull(employee)&& null!=employee.getEmployeeId()) {
-            if(employeeRepository.existsById(employee.getEmployeeId())){
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, USER_REGISTERED_MESSAGE);
+    Badge registerEmployee(@RequestBody Employee employee){
+        if(Objects.nonNull(employee) && null!=employee.getEmployeeId() ) {
+            if(!employeeRepository.existsById(employee.getEmployeeId())){
+                employeeRepository.save(employee);
             }
 
-            return employeeRepository.save(employee);
+            Badge badge= badgeRepository.findTopByStatusAndAssignedOrderByBadgeId("Active","UnAssigned");
+            employeeBadgeMappingRepository.save(new EmployeeBadgeMapping(employee.getEmployeeId(),badge.getBadgeId(), LocalDate.now()));
+            return badge;
         }
 
        else {

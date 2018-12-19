@@ -13,7 +13,13 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
+import java.util.Date;
+
 import static org.hamcrest.MatcherAssert.assertThat;
+
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,12 +29,17 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class EmployeeRegisterationControllerTest {
     @Autowired
-    MockMvc mockMvc;
-    ObjectMapper objectMapper = new ObjectMapper();
+    private MockMvc mockMvc;
+    private ObjectMapper objectMapper = new ObjectMapper();
     @Autowired
-    EmployeeRepository employeeRepository;
-    public final String ERROR_MESSAGE ="Employee details can't be blank";
-    public final String USER_REGISTERED_MESSAGE ="Employee already registered";
+    private EmployeeRepository employeeRepository;
+    @Autowired
+    private BadgeRepository badgeRepository;
+    @Autowired
+    private EmployeeBadgeMappingRepository employeeBadgeMappingRepository;
+
+    private static final String ERROR_MESSAGE ="Employee details can't be blank";
+    private static final String USER_REGISTERED_MESSAGE ="Employee already registered";
     @Before
     public void before(){
         employeeRepository.deleteAll();
@@ -41,6 +52,8 @@ public class EmployeeRegisterationControllerTest {
     public void registerEmployeeReturnErrorForNoEmployeeData() throws Exception {
         //set up
         Employee employee = new Employee();
+        LocalDate localDate = LocalDate.now();
+        System.out.println("@@@@@@@@@@@@@@@@@@@@"+localDate);
         //exercise
         String response=mockMvc.perform(MockMvcRequestBuilders
                 .post("/register").accept(MediaType.APPLICATION_JSON)
@@ -57,12 +70,90 @@ public class EmployeeRegisterationControllerTest {
 
 
     }
+    @Test
+    public void registerEmployeeFetchActiveBadgeWithLeastNumberForEmployeeOnCheckin() throws Exception{
+        //set up
+        Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
+        employeeRepository.save(employee);
+        Badge badge1 = new Badge(4L, "InActive","UnAssigned");
+        badgeRepository.save(badge1);
+        Badge badge3 = new Badge(46L, "Active","UnAssigned");
+        badgeRepository.save(badge3);
+        Badge badge2 = new Badge(56L, "Active","UnAssigned");
+
+        badgeRepository.save(badge2);
 
 
-   @Test
+
+        //exercise
+        String response=mockMvc.perform(MockMvcRequestBuilders
+                .post("/register")
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(employee))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        Badge actual = objectMapper.readValue(response,Badge.class);
+
+
+
+
+        //Assert
+        assertThat(badge3, is(actual));
+    }
+    @Test
+    public void registerEmployeeAssignActiveBadgeWithLeastNumberForEmployeeOnCheckin() throws Exception{
+        //set up
+        Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
+        employeeRepository.save(employee);
+        Badge badge1 = new Badge(4L, "InActive","UnAssigned");
+        badgeRepository.save(badge1);
+        Badge badge3 = new Badge(46L, "Active","UnAssigned");
+        badgeRepository.save(badge3);
+        Badge badge2 = new Badge(56L, "Active","UnAssigned");
+
+        badgeRepository.save(badge2);
+//        DateFormat formatter = new SimpleDateFormat("yyyy-MM-yyyy");
+//
+//        Date today = new Date();
+//
+//        Date todayWithOutTime = formatter.parse(formatter.format(today));
+        ;
+
+        EmployeeBadgeMapping expected = new EmployeeBadgeMapping(123456L,46L,LocalDate.now());
+
+
+
+        //exercise
+        String response=mockMvc.perform(MockMvcRequestBuilders
+                .post("/register")
+                .accept(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(employee))
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+        EmployeeBadgeMapping actual = employeeBadgeMappingRepository.findAll().iterator().next();
+
+
+
+
+        //Assert
+
+        assertThat(expected.getEmployeeId(), is(actual.getEmployeeId()));
+        assertThat(expected.getBadgeId(), is(actual.getBadgeId()));
+        assertThat(expected.getDate(), is(actual.getDate()));
+    }
+
+
+
+    @Test
     public void registerEmployeeReturnSucessfullAdd() throws Exception {
         //set up
-        Employee employee = new Employee("Fine", "Moe1", 123456L, "9876543210");
+        Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
         //exercise
         String response=mockMvc.perform(MockMvcRequestBuilders
                 .post("/register").accept(MediaType.APPLICATION_JSON)
@@ -72,7 +163,6 @@ public class EmployeeRegisterationControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Employee actual = objectMapper.readValue(response,Employee.class);
         Employee actual1=employeeRepository.findById(123456L).orElse(new Employee());
 
 
@@ -82,27 +172,27 @@ public class EmployeeRegisterationControllerTest {
 
     }
 
-    @Test
-    public void registerEmployeeReturnErrorMessageIfEmployeeExist() throws Exception {
-        //set up
-        Employee employee = new Employee("John", "Smith", 123456L, "9876543210");
-
-        //exercise
-        employeeRepository.save(employee);
-        //exercise
-        String response=mockMvc.perform(MockMvcRequestBuilders
-                .post("/register").accept(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(employee))
-                .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
-                .andReturn()
-                .getResponse()
-                .getErrorMessage();
-        //.getContentAsString();
-
-        //Assert
-        assertThat(response, is(USER_REGISTERED_MESSAGE));
-
-
-    }
+//    @Test
+//    public void registerEmployeeReturnErrorMessageIfEmployeeExist() throws Exception {
+//        //set up
+//        Employee employee = new Employee("John", "Smith", 123456L, "9876543210");
+//
+//        //exercise
+//        employeeRepository.save(employee);
+//        //exercise
+//        String response=mockMvc.perform(MockMvcRequestBuilders
+//                .post("/register").accept(MediaType.APPLICATION_JSON)
+//                .content(objectMapper.writeValueAsString(employee))
+//                .contentType(MediaType.APPLICATION_JSON))
+//                .andExpect(status().isBadRequest())
+//                .andReturn()
+//                .getResponse()
+//                .getErrorMessage();
+//        //.getContentAsString();
+//
+//        //Assert
+//        assertThat(response, is(USER_REGISTERED_MESSAGE));
+//
+//
+//    }
 }
