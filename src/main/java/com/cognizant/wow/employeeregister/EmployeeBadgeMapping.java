@@ -9,7 +9,7 @@ import javax.persistence.TemporalType;
 import java.time.LocalDate;
 import java.util.Date;
 @Entity
-final class EmployeeBadgeMapping {
+ public class EmployeeBadgeMapping {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE,generator = "SERIAL_SEQUENCE")
     private Long serialNumber;
@@ -23,6 +23,7 @@ final class EmployeeBadgeMapping {
         this.employeeId = employeeId;
         this.date = date;
     }
+
 
     public Long getEmployeeId() {
         return employeeId;

@@ -43,10 +43,14 @@ public class EmployeeRegisterationControllerTest {
     @Before
     public void before(){
         employeeRepository.deleteAll();
+        badgeRepository.deleteAll();
+        employeeBadgeMappingRepository.deleteAll();
     }
     @After
     public void after(){
         employeeRepository.deleteAll();
+        badgeRepository.deleteAll();
+        employeeBadgeMappingRepository.deleteAll();
     }
     @Test
     public void registerEmployeeReturnErrorForNoEmployeeData() throws Exception {
@@ -101,6 +105,7 @@ public class EmployeeRegisterationControllerTest {
 
 
         //Assert
+        badge3.setAssigned("Assigned");
         assertThat(badge3, is(actual));
     }
     @Test
@@ -115,12 +120,6 @@ public class EmployeeRegisterationControllerTest {
         Badge badge2 = new Badge(56L, "Active","UnAssigned");
 
         badgeRepository.save(badge2);
-//        DateFormat formatter = new SimpleDateFormat("yyyy-MM-yyyy");
-//
-//        Date today = new Date();
-//
-//        Date todayWithOutTime = formatter.parse(formatter.format(today));
-        ;
 
         EmployeeBadgeMapping expected = new EmployeeBadgeMapping(123456L,46L,LocalDate.now());
 
@@ -154,6 +153,8 @@ public class EmployeeRegisterationControllerTest {
     public void registerEmployeeReturnSucessfullAdd() throws Exception {
         //set up
         Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
+        Badge badge1 = new Badge(4L, "Active","UnAssigned");
+        badgeRepository.save(badge1);
         //exercise
         String response=mockMvc.perform(MockMvcRequestBuilders
                 .post("/register").accept(MediaType.APPLICATION_JSON)
@@ -163,7 +164,7 @@ public class EmployeeRegisterationControllerTest {
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
-        Employee actual1=employeeRepository.findById(123456L).orElse(new Employee());
+        Employee actual1=employeeRepository.findById(123456L).orElseThrow(()->new RuntimeException("No Employee data available"));
 
 
         //Assert
@@ -195,4 +196,39 @@ public class EmployeeRegisterationControllerTest {
 //
 //
 //    }
+@Test
+public void registerEmployeeReturnSameBadheNumberOnRepeatedCheckinOnSameDay() throws Exception{
+    //set up
+    Employee employee = new Employee("Fine", "Moe", 123456L, "9876543210");
+    employeeRepository.save(employee);
+    Badge badge1 = new Badge(4L, "InActive","UnAssigned");
+    badgeRepository.save(badge1);
+    Badge badge3 = new Badge(46L, "Active","Assigned");
+    badgeRepository.save(badge3);
+    Badge badge2 = new Badge(56L, "Active","UnAssigned");
+
+    badgeRepository.save(badge2);
+    employeeBadgeMappingRepository.save(new EmployeeBadgeMapping(employee.getEmployeeId(),badge3.getBadgeId(),LocalDate.now()));
+
+
+
+
+    //exercise
+    String response=mockMvc.perform(MockMvcRequestBuilders
+            .post("/register")
+            .accept(MediaType.APPLICATION_JSON)
+            .content(objectMapper.writeValueAsString(employee))
+            .contentType(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+    Badge actual = objectMapper.readValue(response,Badge.class);
+
+
+
+
+    //Assert
+    assertThat(actual, is(badge3));
+}
 }
